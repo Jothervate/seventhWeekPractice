@@ -13,7 +13,7 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
     // 根據條件確認要顯示內容
     let content;
 
-    if(isGetProducts){
+    
         if(isLoading){
             content =(
                 <div className="d-flex justify-content-center" style={{marginTop: '100px'}}>
@@ -22,7 +22,9 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
                     </div>
                 </div>
             )
-        }else{
+        }
+        
+        else if(isGetProducts){
             content= (
                 <div className="col-md-12">
                     <div className="d-flex justify-content-end mb-3">
@@ -60,7 +62,7 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
                                             
 
                                     <button type="button" className='btn btn-outline-primary'
-                                    onClick={()=>addToCart(item)}>
+                                    onClick={()=>addToCart(item.id)}>
                                         加入購物車<i className="bi bi-cart ms-1"></i>
                                     </button>       
 
@@ -86,16 +88,19 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
                 </div>
             )
         }
-    }else{
-        content=(
-            <div className="d-flex justify-content-center" style={{marginTop: '100px'}}>
-                    <div className="bi bi-exclamation-octagon text-danger" style={{fontSize:"40px"}}>
-                        <h1 className="text-dange mt-3">載入失敗!</h1>
-                        <p className="text-muted">請確認網路連線或API網址是否正確?</p>
-                    </div>
+    
+    
+    // 3. 既沒載入中，也沒成功：顯示錯誤 (這裡才會是載入失敗)
+    else {
+        content = (
+            <div className="d-flex justify-content-center" style={{ marginTop: '100px' }}>
+                <div className="bi bi-exclamation-octagon text-danger" style={{ fontSize: "40px" }}>
+                    <h1 className="text-dange mt-3">載入失敗!</h1>
+                    <p className="text-muted">請確認網路連線或API網址是否正確?</p>
                 </div>
-        )
-    };
+            </div>
+        );
+    }
     
 
     return (
@@ -103,5 +108,7 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
             {content}
         </>
     )
+
 }
+
 export default ProductList;

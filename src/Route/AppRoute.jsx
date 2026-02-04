@@ -7,6 +7,7 @@ import ProductEdit from '../pages/ProductEdit';
 import CartPage from '../pages/CartPage';
 import Error from '../pages/Error';
 import Not_logging from '../pages/Not_logging';
+import CheckOutPage from '../pages/CheckOutPage';
 
 const AppRoute=({ 
   // 接收從 App.jsx 傳過來的狀態與方法
@@ -25,11 +26,14 @@ const AppRoute=({
     isLoadingSuccess,
     adminProducts,
     adminPagination,
+    getCart,
+    total,
+    finalTotal,
     carts,
     removeTargetItem,
     clearCart,
     updateQty,
-    cartItemTotal
+    resetCart
 }) => {
     return (
         <Routes>
@@ -90,15 +94,26 @@ const AppRoute=({
                             element={
                             <CartPage 
                                 checkLogin={checkLogin}
+                                getCart={getCart}
+                                total={total}
+                                finalTotal={finalTotal}
                                 carts={carts}
                                 removeTargetItem={removeTargetItem}
                                 clearCart={clearCart}
                                 updateQty={updateQty}
-                                cartItemTotal={cartItemTotal}
                                 isGetCarts={isLoadingSuccess}
+                                resetCart={resetCart}
                             />
                             }
-                        />
+                        >
+                            <Route
+                                path='CheckOutPage'
+                                element={
+                                    <CheckOutPage />
+                                }>
+
+                            </Route>
+                        </Route>
                     </>
                 ):(
                     <>

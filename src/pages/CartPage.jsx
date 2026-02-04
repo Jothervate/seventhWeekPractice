@@ -1,6 +1,6 @@
 import Cart from "../component/Cart";
-
-const CartPage=({checkLogin,carts,removeTargetItem,clearCart,updateQty,cartItemTotal,isGetCarts})=>{
+import { Outlet } from "react-router-dom";
+const CartPage=({checkLogin,carts,removeTargetItem,clearCart,updateQty,total,finalTotal,getCart,resetCart})=>{
     return (
         <>
             <h1 className="text-dark text-center">
@@ -15,9 +15,14 @@ const CartPage=({checkLogin,carts,removeTargetItem,clearCart,updateQty,cartItemT
                         removeTargetItem={removeTargetItem}
                         clearCart={clearCart}
                         updateQty={updateQty}
-                        cartItemTotal={cartItemTotal}
-                        isGetCarts={isGetCarts}/>
+                        total={total}
+                        finalTotal={finalTotal}
+                        getCart={getCart}/>
                 </div>
+            </div>
+
+            <div className='checkout-selection'>
+                <Outlet context={{carts,total,finalTotal,resetCart}}/>
             </div>
         </>
     )

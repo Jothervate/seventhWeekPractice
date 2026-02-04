@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect ,useCallback} from 'react';
-import { useNavigate} from 'react-router-dom';
+import { useNavigate,useLocation} from 'react-router-dom';
 import axios from "axios";
 import * as bootstrap from "bootstrap";
 
@@ -20,6 +20,8 @@ function App() {
 
   // 初始化navigate設定
   const navigate= useNavigate();
+  // 初始化location
+  const location = useLocation();
   // 初始化是否以cookies首次跳轉
   const hasInitialRedirected= useRef(false);
 
@@ -37,6 +39,9 @@ function App() {
 
   // 建立購物車資訊
   const [carts,setCarts]= useState([]);
+  // 購物車內自行加總
+  const [total,setTotal]= useState(0);
+  const [finalTotal,setFinalTotal]= useState(0);
 
   // 是否正在刪除產品
   const [isDeleteItem,setIsDeleteItem]= useState(false);
@@ -151,7 +156,9 @@ function App() {
 
           // 只有當「尚未執行過初始跳轉」時，才執行 navigate('/')
           if (hasInitialRedirected.current === false) {
-            navigate('/');
+            if(location.pathname==='/login'){
+              navigate('/');
+            }
             // 跳轉後，立刻將開關設為 true，之後這個 useEffect 就算再執行也不會觸發跳轉
             hasInitialRedirected.current = true;
           };
@@ -161,7 +168,7 @@ function App() {
         }
       };
       checkAuth();
-  }, [navigate]); // 僅在頁面載入時執行
+  }, [navigate,location]); // 僅在頁面載入時執行
 
 
   
@@ -380,57 +387,81 @@ function App() {
         }
     };
 
+    // 取得購物車資訊
+    const getCart=async()=>{
+      try{
+        const res= await axios.get(`${API_BASE}/api/${API_PATH}/cart`);
+        setCarts(res?.data?.data?.carts);
+        setTotal(res?.data?.data?.total);
+        setFinalTotal(res?.data?.data?.final_total);
+      }catch(err){
+        console.log("取得購物車資訊發生錯誤!",err.response?.data?.message);
+        alert("發生錯誤,無法取得資訊!")
+      }
+    }
 
-    // 處理購物車資訊
-    const addToCart = (product) => {
+   
 
-      // 先確認取得資料上是否已經成功
-      if (!isLoadingSuccess){
-        console.warn("無法取得資訊內容!");
-        return;
-      } 
+    // 新增購物車資訊
+    const addToCart = async(product_id,qty=1) => {
 
       // 確認資訊內容是否存在
-      if(!product?.id) return;
+      if(!product_id) return;
       
-      setCarts((prevCart) => {
-        // 1. 使用可選連綴 (?.) 預防 prevCart 裡有 undefined 的情況
-        const isItemInCart = prevCart.find((item) => item?.id === product.id);
-
-        if (isItemInCart) {
-          return prevCart.map((item) => {
-            if (item.id === product.id) {
-              // 先算出新的數量
-              const newQty = item.qty + 1; 
-              return {
-                ...item,
-                qty: newQty,
-                // 這裡要用 item.price (或 product.price) 乘以「新數量」
-                total: Number(item.price) * newQty 
-              };
-            }
-            return item;
-          });
+      const data={
+        data:{
+          product_id:product_id,
+          qty:qty
         }
+      };
 
-        // 2. 新產品：第一次加入時，total 就是單價
-        return [...prevCart, { ...product, qty: 1, total: Number(product.price) }];
-      });
+      setIsLoadingSuccess(true);
+
+      try{
+        const res = await axios.post(`${API_BASE}/api/${API_PATH}/cart`,data);
+        console.log("加入成功!",res.data);
+        alert("已加入購物車!");
+        getCart();
+      }catch(err){
+        console.log("加入失敗!"+err?.response?.data?.message||"未知錯誤!");
+      }finally{
+        setIsLoading(false);
+      }
+
     };
 
     // 移除購物車指定項目內容
-    const removeTargetItem=(product)=>{
-      if(window.confirm("確定要移除該品項出去嗎?")){
-        setCarts((prevCart)=>prevCart.filter((item)=>item.id!==product.id));
+    const removeTargetItem=async(cartItem_id)=>{
+      
+      const isConfirm = window.confirm("確定要移除該品項?");
+      if(!isConfirm) return ;
+
+      try{
+        await axios.delete(`${API_BASE}/api/${API_PATH}/cart/${cartItem_id}`);
+        console.log(`已刪除${cartItem_id}內容!`)
+        getCart();
+        
+      }catch(err){
+        console.log("發生錯誤!",err?.response?.data?.message);
+        alert("移除失敗: " + (err?.response?.data?.message || "未知錯誤"));
       }
     };
 
     // 全部清除
-    const clearCart=()=>{
+    const clearCart=async()=>{
       if(carts.length>0){
-        if(window.confirm("要全部清空嗎?")){
-          setCarts([]);
+        const isConfirm= window.confirm("要全部清空嗎?")
+        if(!isConfirm) return ;
+
+        try{
+          await axios.delete(`${API_BASE}/api/${API_PATH}/cart`);
+          console.log("已刪除全部內容!");
+          getCart();
+        }catch(err){
+          console.log("發生錯誤!",err?.response?.data?.message);
+          alert("移除失敗: " + (err?.response?.data?.message || "未知錯誤"));
         }
+
       }else{
         alert("購物車早就沒東西,無須清空!")
       }
@@ -438,27 +469,43 @@ function App() {
     };
 
     //更新數量狀態
-    const updateQty = (productId, type) => {
-      setCarts((prevCart) => {
-        return prevCart.map((item) => {
-          if (item.id === productId) {
-            const newQty = type === "add" ? item.qty + 1 : item.qty - 1;
-            // 確保最少為 1
-            const finalQty = newQty < 1 ? 1 : newQty;
-            
-            return {
-              ...item,
-              qty: finalQty,
-              total: Number(item.price) * finalQty
-            };
-          }
-          return item; // 沒對到的項目要原樣回傳，不然會變 undefined
-        });
-      });
+    const updateQty = async(item, type) => {
+      // 1.先計算出新數量
+      const newQty = type === "add" ? item.qty + 1 : item.qty - 1;
+
+      // 2. 基本防呆：如果數量小於 1，就不準再減了 (或是你要做刪除也可以，但通常是擋住)
+      if (newQty < 1) return;
+
+      // 3. 準備 API 要的資料格式
+      const data = {
+        data: {
+          product_id: item.product_id, // ⚠️ 注意：PUT 還是需要帶 product_id
+          qty: newQty
+        }
+      };
+
+      try{
+        // 發送put請求
+        const res = await axios.put(`${API_BASE}/api/${API_PATH}/cart/${item.id}`,data);
+        console.log("更新成功:", res.data);
+        getCart();
+      }catch(err){
+        console.error("更新失敗:", err);
+        alert("更新失敗: " + err?.response?.data?.message);
+      }
+
     };
 
-    // 購物車內容全部進行加總
-    const cartItemTotal =carts.reduce((acc,item)=>acc +(item.total||0),0);
+    // 當成功購物完內容後,進行購物車內容清除
+    const resetCart=()=>{
+      setCarts([]);
+      getCart();
+    }
+
+    
+
+
+
 
 return (
   <>
@@ -482,11 +529,14 @@ return (
           isLoadingSuccess={isLoadingSuccess}
           adminProducts={adminProducts}
           adminPagination={adminPagination}
+          getCart={getCart}
+          total={total}
+          finalTotal={finalTotal}
           carts={carts}
           removeTargetItem={removeTargetItem}
           clearCart={clearCart}
           updateQty={updateQty}
-          cartItemTotal={cartItemTotal}
+          resetCart={resetCart}
       />
       </div>
       {/* {Modal} */}

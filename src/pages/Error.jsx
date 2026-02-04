@@ -6,21 +6,23 @@ const Error=()=>{
     const [timer,setTimer]= useState(5);
 
     useEffect(()=>{
-        let time=0;
-        const countTime= setInterval(()=>{
-            
-            setTimer((pre)=>pre-1);
-            time+=1;
-            if(time>=5){
-                clearInterval(countTime);
-            }
+        // 建立計時器
+        const interValId= setInterval(()=>{
+            setTimer((prev)=>{
+                if(prev<=1){
+                    clearInterval(interValId);//當時間小於等於1秒,清除掉interValId中的setInterval
+                    navigate('/');//跳轉至首頁
+                    return 0; //顯示為0秒
+                }
+
+                return prev -1 //否則,就持續減1秒
+            })
         },1000);
 
-        const timer=setTimeout(()=>{
-            navigate('/');
-        },5000);
-
-        return ()=>clearTimeout(timer);
+        // 【重要】清理函式
+        // 當元件被卸載 (例如使用者自己點了按鈕離開)，這行會執行
+        // 確保計時器被清除，不會在背景繼續跑
+        return () => clearInterval(interValId);
     },[navigate]);
 
     return (

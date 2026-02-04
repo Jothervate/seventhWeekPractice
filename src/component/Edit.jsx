@@ -11,8 +11,7 @@ const Edit=({openModal,products,checkLogin,pagination,onChangePages,isLoading,is
     //根據載入內容決定傳入資訊內容
     let content;
 
-    if(isGetDatas){
-        if(isLoading){
+    if(isLoading){
             content= (
                 <div className="d-flex justify-content-center" style={{marginTop: '100px'}}>
                     <div className="spinner-border text-primary" role="status">
@@ -20,7 +19,9 @@ const Edit=({openModal,products,checkLogin,pagination,onChangePages,isLoading,is
                     </div>
                 </div>
             )
-        }else{
+        }
+    
+    else if(isGetDatas){
             content=(
                 <div className="col-md-12">
                     <div className="d-flex justify-content-end mb-3">
@@ -96,7 +97,7 @@ const Edit=({openModal,products,checkLogin,pagination,onChangePages,isLoading,is
                 </div>
             )
         }
-    }else{
+    else{
         content=(
             <div className="d-flex justify-content-center" style={{marginTop: '100px'}}>
                     <div className="bi bi-exclamation-octagon text-danger" style={{fontSize:"40px"}}>
