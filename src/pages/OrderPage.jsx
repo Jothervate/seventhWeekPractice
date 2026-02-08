@@ -135,7 +135,7 @@ const Order = ({isAuth}) => {
     return (
         
         <div className="container mt-5">
-            <h2 className='text-center mb-4'>訂單列表</h2>
+            <h1 className='text-center mb-4'>訂單列表</h1>
             {content}
         </div>
     );
