@@ -12,9 +12,13 @@ import DeleteModal from './component/Delete';
 import AppRoute from './Route/AppRoute';
 import Navbar from './component/Navbar';
 
+// Toast
+import Toast from './toastSlice/Toast';
+import { useDispatch } from 'react-redux';
+import { pushMessage } from './toastSlice/toastSlice';
 
-
-
+// sweetalert2
+import Swal from 'sweetalert2';
 
 function App() {
 
@@ -72,6 +76,9 @@ function App() {
   // 2. 在 useEffect 中分別實例化 Bootstrap Modal
   const modalInstance = useRef(null);
   const delModalInstance = useRef(null);
+
+  // 定義dispatch,為接下來的傳輸提示訊息做準備
+  const dispatch= useDispatch();
 
   useEffect(() => {
     modalInstance.current = new bootstrap.Modal(productModalRef.current);
@@ -131,9 +138,16 @@ function App() {
       }
       
       setIsLoadingSuccess(true);
+      dispatch(pushMessage({
+        message:`取得資料成功!`,
+        status:"success"
+      }))
 
     } catch (err) {
-      alert(`取得產品失敗: ${err.response?.data?.message || err?.message}`);
+      dispatch(pushMessage({
+        message:`取得產品失敗: ${err.response?.data?.message || err?.message}`,
+        status:"danger"
+      }))
       setIsLoadingSuccess(false);
     }finally{
       // 無論成功與否,最後讀取功能都會變回false
@@ -184,9 +198,16 @@ function App() {
   const checkLogin = async () => {
     try {
       await axios.post(`${API_BASE}/api/user/check`);
-      alert(`你已成功登入！讚讚！`);
+      dispatch(pushMessage({
+        message:`你已成功登入,讚讚!`,
+        status:"success"
+      }))
     } catch (err) {
-      alert(`驗證無效: ${err.response?.data?.message}`);
+
+      dispatch(pushMessage({
+        message:`驗證無效: ${err.response?.data?.message}`,
+        status:"danger"
+      }))
     }
   };
 
@@ -196,16 +217,21 @@ function App() {
     const isAlreadyLoaded = templateData?.length > 0 && templateData[0].id === item.id;
 
     if (isAlreadyLoaded) {
-      alert('你已獲取該產品細節，無須再獲取！');
+      dispatch(pushMessage({
+        message:`你已獲取該產品細節，無須再獲取！`,
+        status:"danger"
+      }))
       return; // 中止執行
     }
 
     try {
       // 2. 將 templateData 替換為只包含「當前點擊產品」的陣列
       setTemplateData([item]); 
-      // alert("取得詳細資訊成功!");
     } catch (err) {
-      alert(`發生錯誤: ${err.message}`);
+      dispatch(pushMessage({
+        message:`發生${err?.response?.data?.message||"未知錯誤"}`,
+        status:"danger"
+      }))
     }
   };
 
@@ -257,8 +283,12 @@ function App() {
             imagesUrl: [...currentImages, ""] // 這裡直接解構並新增，更簡潔
           };
         }else{
-          alert(`你已超過加入圖片上限!`)
-          return pre
+          
+          dispatch(pushMessage({
+            message:`你已超過加入圖片上限!`,
+            status:"danger"
+          }))
+          return pre;
         }
       });
   };
@@ -276,7 +306,10 @@ function App() {
           imagesUrl:newImages
         }
       }else{
-        alert(`至少要有一張圖片!`)
+        dispatch(pushMessage({
+          message:"至少要有一張副圖片!",
+          status:"danger"
+        }))
         return pre;
       }
       
@@ -303,14 +336,21 @@ function App() {
           break;
 
         case "edit":
-          if (!id) return alert("產品 id 缺失，無法更新");
+          if (!id) return dispatch(pushMessage({
+            message:"產品 id 缺失，無法更新",
+            status:"danger",
+          }));
+
           status = "更新";
           method = "put";
           url = `${url}/${id}`;
           break;
 
         case "delete":
-          if (!id) return alert("產品 id 缺失，無法刪除");
+          if (!id) return dispatch(pushMessage({
+            message:"產品 id 缺失，無法更新",
+            status:"danger",
+          }));
           status = "刪除";
           method = "delete";
           url = `${url}/${id}`;
@@ -342,13 +382,19 @@ function App() {
         }else{
           await axios[method](url,payload)
         };
-        alert(`${status}資料成功!`);
+        dispatch(pushMessage({
+          message:`${status}資料成功!`,
+          status:'success'
+        }))
         await getDatas();
         closeModal();
       } catch (err) {
         const errorMsg = err.response?.data?.message || err.message;
         console.error(`${status}失敗：`, errorMsg);
-        alert(`${status}失敗：${errorMsg}`);
+        dispatch(pushMessage({
+          message:`${status}失敗：${errorMsg}`,
+          status:"danger"
+        }))
       }finally{
         setIsDeleteItem(false);
       }
@@ -359,7 +405,10 @@ function App() {
     const uploadImage=async(e)=>{
         const file= e.target.files?.[0];//目前只需要取一張圖片就好
         if(!file){
-            alert('請上傳一張圖片!');
+            dispatch(pushMessage({
+              message:"請上傳一張圖片!",
+              status:"danger"
+            }))
             return;
         }
 
@@ -367,7 +416,10 @@ function App() {
         // 圖片大小不可超過2MB
         const maxSize= 2*1024*1024;
         if(file.size>maxSize){
-          alert('圖片大小不可超過2MB!');
+          dispatch(pushMessage({
+            message:"圖片檔案不可超過2MB!",
+            status:"danger"
+          }))
           e.target.value='';//清空input
           return ;
         };
@@ -386,8 +438,9 @@ function App() {
 
         }catch(err){
             const errorMsg= err.response?.data?.message||'上傳失敗!';
-            alert(`錯誤: ${errorMsg}`);
-            console.log(err)
+            dispatch(pushMessage({
+              message:`發生錯誤${errorMsg}`
+            }))
         }finally{
           setIsUploading(false);//成功或失敗都結束上傳狀態
           e.target.value=''//清空input值
@@ -403,21 +456,22 @@ function App() {
         setFinalTotal(res?.data?.data?.final_total);
       }catch(err){
         console.log("取得購物車資訊發生錯誤!",err.response?.data?.message);
-        alert("發生錯誤,無法取得資訊!")
+        dispatch(pushMessage({
+          message:"發生錯誤,購物車無法取得資訊!",
+          status:"danger"
+        }))
       }
-    }
-
-   
+    };
 
     // 新增購物車資訊
-    const addToCart = async(product_id,qty=1) => {
+    const addToCart = async(product,qty=1) => {
 
       // 確認資訊內容是否存在
-      if(!product_id) return;
+      if(!product) return;
       
       const data={
         data:{
-          product_id:product_id,
+          product_id:product.id,
           qty:qty
         }
       };
@@ -427,10 +481,17 @@ function App() {
       try{
         const res = await axios.post(`${API_BASE}/api/${API_PATH}/cart`,data);
         console.log("加入成功!",res.data);
-        alert("已加入購物車!");
+        dispatch(pushMessage({
+          message:`已成功將${product.title}加入購物車!`,
+          status:'success'
+        }))
         getCart();
       }catch(err){
         console.log("加入失敗!"+err?.response?.data?.message||"未知錯誤!");
+        dispatch(pushMessage({
+          message:`發生${err?.response?.data?.message||"未知錯誤!"}`,
+          status:"danger"
+        }))
       }finally{
         setIsLoading(false);
       }
@@ -438,39 +499,72 @@ function App() {
     };
 
     // 移除購物車指定項目內容
-    const removeTargetItem=async(cartItem_id)=>{
+    const removeTargetItem=async(cartItem)=>{
       
-      const isConfirm = window.confirm("確定要移除該品項?");
-      if(!isConfirm) return ;
+      const result = await Swal.fire({
+        title:"確定移除該品項?",
+        text:"刪除後,無法回復該動作",
+        icon:'warning',
+        showCancelButton:true,
+        confirmButtonColor: '#d33', // 紅色按鈕代表危險操作
+        cancelButtonColor: '#8c8c8c',
+        confirmButtonText: '是的，我要刪除',
+        cancelButtonText: '取消'
+      })
+
+      if(!result.isConfirmed) return ;
 
       try{
-        await axios.delete(`${API_BASE}/api/${API_PATH}/cart/${cartItem_id}`);
-        console.log(`已刪除${cartItem_id}內容!`)
+        await axios.delete(`${API_BASE}/api/${API_PATH}/cart/${cartItem.id}`);
+        dispatch(pushMessage({
+          message:`已移除${cartItem.title}`,
+          status: 'success'
+        }))
         getCart();
         
       }catch(err){
-        console.log("發生錯誤!",err?.response?.data?.message);
-        alert("移除失敗: " + (err?.response?.data?.message || "未知錯誤"));
+        dispatch(pushMessage({
+          message:`發生${err?.response?.data?.message||"未知錯誤"}`,
+          status:'danger'
+        }))
       }
     };
 
     // 全部清除
     const clearCart=async()=>{
       if(carts.length>0){
-        const isConfirm= window.confirm("要全部清空嗎?")
-        if(!isConfirm) return ;
+        const result= await Swal.fire({
+          title:"確定要移除全部購物車內容?",
+          text:"刪除後,將無法回復該動作",
+          icon:'warning',
+          showCancelButton:true,
+          confirmButtonColor:"#d33",
+          cancelButtonColor:"#8c8c8c",
+          confirmButtonText:"是的,我要全部刪除",
+          cancelButtonText:"取消"
+        })
+        if(!result.isConfirmed) return ;
 
         try{
           await axios.delete(`${API_BASE}/api/${API_PATH}/cart`);
-          console.log("已刪除全部內容!");
+          dispatch(pushMessage({
+            message:`已全部刪除!`,
+            status:'success'
+          }))
           getCart();
         }catch(err){
           console.log("發生錯誤!",err?.response?.data?.message);
-          alert("移除失敗: " + (err?.response?.data?.message || "未知錯誤"));
+          dispatch(pushMessage({
+            message:`移除失敗:${err?.response?.data?.message || "未知錯誤"}`,
+            status:'danger'
+          }))
         }
 
       }else{
-        alert("購物車早就沒東西,無須清空!")
+        dispatch(pushMessage({
+          message:"購物車已經沒有東西,無須清空!",
+          status:"danger"
+        }))
       }
       
     };
@@ -493,12 +587,15 @@ function App() {
 
       try{
         // 發送put請求
-        const res = await axios.put(`${API_BASE}/api/${API_PATH}/cart/${item.id}`,data);
-        console.log("更新成功:", res.data);
+        await axios.put(`${API_BASE}/api/${API_PATH}/cart/${item.id}`,data);
+        
         getCart();
       }catch(err){
         console.error("更新失敗:", err);
-        alert("更新失敗: " + err?.response?.data?.message);
+        dispatch(pushMessage({
+          message:`更新資料發生${err?.response?.data?.message||"未知錯誤!"}!`,
+          status:"danger"
+        }))
       }
 
     };
@@ -512,6 +609,7 @@ function App() {
     
 return (
   <>
+    <Toast/>
     {/* 先確認是否有載入資料中 */}
       {
         isAuthChecking?(
@@ -523,7 +621,8 @@ return (
         </div>):(
           <>
             {/* 如果載入完成,則會正常顯示內容 */}
-            {isAuth && <Navbar />}
+            {/* 改掉,變成有區分登入前與登入後不同的差別 */}
+            <Navbar isAuth={isAuth}/>
               <div className='container'>
                 <AppRoute 
                   isAuth={isAuth}

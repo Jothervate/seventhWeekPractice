@@ -1,6 +1,7 @@
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState,useCallback } from 'react';
 import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
 import * as bootstrap from "bootstrap";
 import axios from "axios";
 
@@ -94,7 +95,17 @@ const CheckOutPage = () => {
             // 如果你的 API 真的是 /cart (建立訂單)，請維持原樣。
             // 但標準 Hex API 流程是： POST /order (建立訂單) -> 取得 orderId -> POST /pay/{orderId} (付款)
             
-            alert("送出訂單成功! 感謝你的購買!");
+            Swal.fire({
+                title:"表單已成功提交!",
+                text:"感謝你的購買,商品準備中...",
+                icon:"success",
+                confirmButtonText:`再去逛逛!`,
+                confirmButtonColor:"#3085d6",
+                timer: 3000,
+                timerProgressBar:true //顯示倒數紀錄條
+            }).then(()=>{
+                navigate("/products");
+            })
             
             // 清空購物車 (實際上 API 送出訂單後，後端購物車通常會自動清空)
             // 但為了保險，前端狀態也重置

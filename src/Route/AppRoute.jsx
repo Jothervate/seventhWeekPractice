@@ -8,6 +8,7 @@ import CartPage from '../pages/CartPage';
 import Error from '../pages/Error';
 import Not_logging from '../pages/Not_logging';
 import CheckOutPage from '../pages/CheckOutPage';
+import Order from '../pages/OrderPage';
 
 const AppRoute=({ 
   // 接收從 App.jsx 傳過來的狀態與方法
@@ -37,59 +38,58 @@ const AppRoute=({
 }) => {
     return (
         <Routes>
+
+            <Route
+                    path='/'
+                    element={<Home checkLogin={checkLogin} />}
+                />
+                
             <Route
                 path='/login'
                 element={<Not_logging 
                     setIsAuth={setIsAuth}
                     />}
                 />
-            <Route  
-                path='/404' element={<Error />}/>
-            {
-                isAuth?(
-                    <>
-                        <Route
-                            path='/'
-                            element={<Home checkLogin={checkLogin} />}
-                        />
-                        
-                        <Route 
-                            path='/products'
-                            element={
-                            <ProductPage 
-                                isLoading={isLoading}
-                                products={clientProducts}
-                                pagination={clientPagination}
-                                getDatas={(page) => getDatas(page, false)}
-                                openModal={openModal}
-                                getTemplateData={getTemplateData}
-                                templateData={templateData}
-                                setTemplateData={setTemplateData}
-                                checkLogin={checkLogin}
-                                addToCart={addToCart}
-                                isGetProducts={isLoadingSuccess}
-                            />
-                            }
-                        />
+            
+                
+                <Route 
+                    path='/products'
+                    element={
+                    <ProductPage 
+                        isLoading={isLoading}
+                        products={clientProducts}
+                        pagination={clientPagination}
+                        getDatas={(page) => getDatas(page, false)}
+                        openModal={openModal}
+                        getTemplateData={getTemplateData}
+                        templateData={templateData}
+                        setTemplateData={setTemplateData}
+                        checkLogin={checkLogin}
+                        addToCart={addToCart}
+                        isGetProducts={isLoadingSuccess}
+                    />
+                    }
+                />
 
-                        <Route path='/product/:id' element={<DetailPage />} />
+                <Route path='/product/:id' element={<DetailPage />} />
 
-                        <Route 
-                            path='/productEdit' 
-                            element={
-                            <ProductEdit
-                                isLoading={isLoading}
-                                openModal={openModal}
-                                checkLogin={checkLogin}
-                                products={adminProducts}
-                                pagination={adminPagination}
-                                getDatas={(page) => getDatas(page, true)}
-                                isGetDatas={isLoadingSuccess}
-                            />
-                            } 
-                        />
+                <Route 
+                    path='/productEdit' 
+                    element={
+                    <ProductEdit
+                        isLoading={isLoading}
+                        isAuth={isAuth}
+                        openModal={openModal}
+                        checkLogin={checkLogin}
+                        products={adminProducts}
+                        pagination={adminPagination}
+                        getDatas={(page) => getDatas(page, true)}
+                        isGetDatas={isLoadingSuccess}
+                    />
+                    } 
+                />
 
-                        <Route 
+                <Route 
                             path='/cart'
                             element={
                             <CartPage 
@@ -103,6 +103,7 @@ const AppRoute=({
                                 updateQty={updateQty}
                                 isGetCarts={isLoadingSuccess}
                                 resetCart={resetCart}
+                                isAuth={isAuth}
                             />
                             }
                         >
@@ -114,18 +115,18 @@ const AppRoute=({
 
                             </Route>
                         </Route>
-                    </>
-                ):(
-                    <>
-                        <Route
-                            path='/'
-                            element={<Navigate to="/login" replace/>}
-                            />
-                    </>
-                )
-            }            
+            
+            <Route
+                path='Order'
+                element={
+                    <Order
+                    isAuth={isAuth}/>
+                }>
 
-
+            </Route>
+            
+            <Route  
+                path='/404' element={<Error />}/>          
             <Route 
                 path ='*'
                 element={

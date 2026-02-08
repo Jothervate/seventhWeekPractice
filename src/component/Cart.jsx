@@ -109,7 +109,7 @@ const Cart=({
                                     <button 
                                         type="button" 
                                         className="btn btn-danger" 
-                                        onClick={() => removeTargetItem(item.id)}
+                                        onClick={() => removeTargetItem(item)}
                                     >
                                         移除 <i className="bi bi-trash"></i>
                                     </button>

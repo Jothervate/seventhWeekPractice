@@ -1,6 +1,6 @@
 {
-  "name": "sixthWeekPractice",
-  "homepage": "https://github.com/Jothervate/sixthWeekPractice",
+  "name": "seventhWeekPractice",
+  "homepage": "https://Jothervate.github.io/seventhWeekPractice/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,13 +13,16 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.13.0",
-    "sass": "^1.97.2"
+    "sass": "^1.97.2",
+    "sweetalert2": "^11.26.18"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -62,7 +62,7 @@ const ProductList=({checkLogin,products,pagination,onChangePages,addToCart,isLoa
                                             
 
                                     <button type="button" className='btn btn-outline-primary'
-                                    onClick={()=>addToCart(item.id)}>
+                                    onClick={()=>addToCart(item)}>
                                         加入購物車<i className="bi bi-cart ms-1"></i>
                                     </button>       
 
